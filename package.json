@@ -1,0 +1,23 @@
+{
+  "name": "chatty",
+  "version": "1.0.0",
+  "private": "true",
+  "workspaces": [
+    "apps/web",
+    "apps/pb"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:pb\"",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:pb": "npm run start --workspace=apps/pb",
+    "build": "npm run build --workspaces",
+    "start": "npm run start --workspaces"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

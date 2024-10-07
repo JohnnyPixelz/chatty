@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "private": "true",
   "workspaces": [
-    "apps/web",
-    "apps/pb"
+    "apps/web"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:web\" \"npm run dev:pb\"",
+    "dev": "concurrently \"npm run dev:web\"",
     "dev:web": "npm run dev --workspace=apps/web",
-    "dev:pb": "npm run start --workspace=apps/pb",
     "build": "npm run build --workspaces",
     "start": "npm run start --workspaces"
   },

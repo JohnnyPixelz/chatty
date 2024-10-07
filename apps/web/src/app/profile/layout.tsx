@@ -1,20 +1,16 @@
-"use client";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import "./styles.css";
 
-import { useAuth } from "@/pocketbase-utils";
-import { useRouter } from "next/navigation";
-
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
 
-  const { isLoading, user } = useAuth();
-  const router = useRouter();
-
-  if (!isLoading && !user) {
-    router.push("/login");
-    return null;
+  const session = await auth();
+  if (!session) {
+    redirect("/login");
   }
 
   return (

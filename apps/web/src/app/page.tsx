@@ -1,36 +1,20 @@
-"use client";
+import { auth } from "@/auth";
+import JoinNowButton from "./join-now-button";
 
-import PocketBase from "pocketbase";
-import { useEffect, useState } from "react";
 
-export default function Page() {
-  const [pb, setPb] = useState<PocketBase | null>(null);
-
-  useEffect(() => {
-    const pb = new PocketBase('http://127.0.0.1:8090');
-    console.log(pb.authStore);
-    setPb(pb);
-  }, []);
+export default async function Page() {
+  const session = await auth();
 
   return (
-    <div>
-      <button
-        onClick={async () => {
-          if (pb == null) return;
+    <div className="min-h-screen">
 
-          const authData = await pb.collection('users').authWithPassword(
-            'johnny',
-            'malakas123',
-          );
+      <div className="flex flex-col pt-[100px] gap-3 items-center">
+        <p className="text-5xl font-semibold">chatty</p>
+        <p className="text-lg">private chat reimagined</p>
 
-          console.log(authData);
+        <JoinNowButton session={session} />
+      </div>
 
-          console.log(pb.authStore.isValid);
-          console.log(pb.authStore);
-        }}
-      >
-        Auth
-      </button>
     </div>
   );
 }

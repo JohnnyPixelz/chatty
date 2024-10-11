@@ -45,7 +45,7 @@ export default async function Page() {
                   </div>
                   <div className="flex flex-col justify-center">
                     <p className="text-white font-medium">{friendship.friend.name}</p>
-                    <p className="text-zinc-300 text-sm">{friendship.messages.reduce((latest, current) => latest.sentAt > current.sentAt ? latest : current).content}</p>
+                    <p className="text-zinc-300 text-sm">{friendship.messages.length === 0 ? "No messages yet" : friendship.messages.reduce((latest, current) => latest.sentAt > current.sentAt ? latest : current).content}</p>
                   </div>
                 </Link>
               ))}

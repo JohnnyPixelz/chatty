@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  // Friendships where this user is either user1 or user2
+  friendships1  Friendship[] @relation("user1Relation")
+  friendships2 Friendship[] @relation("user2Relation")
+
+  messages Message[] @relation("sender")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Friendship {
+  id String @id @default(cuid())
+
+  // User1 will always be the user with the lower ID (user1.id < user2.id)
+  user1Id String
+  user2Id String
+
+  user1 User @relation("user1Relation", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("user2Relation", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  requestInitiator RequestInitiator
+  isApproved       Boolean          @default(false)
+
+  // Messages exchanged in the friendship
+  messages Message[] @relation("friendshipMessages")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Enforce user1Id < user2Id. Rip prisma missing constraints support
+  @@unique([user1Id, user2Id])
+}
+
+enum RequestInitiator {
+  U1
+  U2
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  // Message content
+  content String
+  sentAt  DateTime @default(now())
+
+  // Sender of the message
+  senderId String
+  sender   User   @relation("sender", fields: [senderId], references: [id])
+
+  // The friendship where the message belongs
+  friendshipId String
+  friendship   Friendship @relation("friendshipMessages", fields: [friendshipId], references: [id])
+
+  @@index([friendshipId, sentAt]) // For efficient querying of messages in a chat
+}

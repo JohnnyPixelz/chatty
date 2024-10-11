@@ -1,32 +1,46 @@
-"use client";
-
 import { friends, IFriend, IMessage } from "@/data";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Bolt, Mic2, Send, Video } from "lucide-react";
-import { Chat } from "./chat";
-import { handleSendMessage } from "./actions";
-import { useRef } from "react";
-import { useFormState } from "react-dom";
+import { Bolt } from "lucide-react";
+import { prisma } from "@/prisma";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export function Chatty({ chatId }: { chatId?: string }) {
-  const [state, formAction] = useFormState<boolean, FormData>(
-    handleSendMessage,
-    false
-  );
-
-  const formRef = useRef<HTMLFormElement>(null);
-
-  // const { pending } = useFormStatus();
-
-  if (formRef.current && state) {
-    formRef.current.reset();
+export async function Chatty({ chatId }: { chatId?: string }) {
+  const session = await auth();
+  if (!session || !session.user?.email) {
+    redirect("/");
   }
 
-  const selectedFriend = friends.find((friend) => friend.id.toString() == chatId);
-  const messages = selectedFriend?.messages || []
+  const user = await prisma.user.findUnique({
+    where: {
+      email: session.user?.email
+    }
+  });
+
+  if (!user) {
+    redirect("/");
+  }
+
+  // const friendship = await prisma.friendship.findFirst({
+  //   where: {
+  //     OR: [
+  //       { user1Id: user?.id },
+  //       { user2Id: user?.id },
+  //     ],
+  //     id: chatId
+  //   },
+  //   include: {
+  //     messages: true,
+  //     user1: true,
+  //     user2: true
+  //   }
+  // });
+
+  // const otherUser = user.id == friendship.user1.id ? friendship.user2 : friendship.user1;
+
+  // const messages = friendship.messages;
 
   return (
     <div className="h-screen flex flex-row">
@@ -51,39 +65,24 @@ export function Chatty({ chatId }: { chatId?: string }) {
       </div>
 
       {/* Main Area aka chat */}
+      {/* {selectedFriend && chatId
+        ? (
+          <div className='flex flex-col justify-end flex-grow h-full'>
+            <ChatHeader name={selectedFriend?.name} />
 
-      <div className='flex flex-col justify-end flex-grow h-full'>
-        <div className="p-4 border-b flex flex-row justify-between items-center">
-          <p className="text-2xl font-medium">{selectedFriend?.name}</p>
-          <div className="flex flex-row">
-            <Button variant={"ghost"}>
-              <Mic2 className="text-indigo-500 animate-pulse transition-all" />
-            </Button>
-            <Button variant={"ghost"}>
-              <Video className="text-indigo-500 animate-pulse transition-all" />
-            </Button>
+            <ChatArea className="chat-background bg-repeat" messages={messages} />
+
+            <ChatBox chatId={chatId} />
           </div>
-        </div>
+        )
+        : (
+          <div className="flex items-center justify-center flex-grow">
+            <p className="text-lg"></p>
+          </div>
+        )
+      } */}
 
-        <Chat className="chat-background bg-repeat" messages={messages} />
-
-        <form
-          ref={formRef}
-          action={formAction}
-          className='border-t p-4 flex gap-3'
-        >
-          <input className="hidden" type="text" name="chatId" defaultValue={chatId} />
-          <Input
-            name="message"
-            placeholder="Type a message..."
-          />
-          <Button>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </div>
-
-    </div>
+    </div >
   );
 };
 

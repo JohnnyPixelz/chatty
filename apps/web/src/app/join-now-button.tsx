@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 export default function JoinNowButton({ session }: { session: Session | null }) {
   const router = useRouter();
 
-  console.log(session);
-
   return (
     <Button
       className="mt-12"

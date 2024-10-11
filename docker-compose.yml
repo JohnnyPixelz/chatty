@@ -1,26 +1,38 @@
-# docker-compose.yml
-
-version: '3'
+version: "3.8"
 
 services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - chatty-network
+
+  # Next.js App
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: web-app
+      dockerfile: ./apps/web/Dockerfile # Specify the path to the Next.js app
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
       - "3000:3000"
-    volumes:
-      - ./apps/web:/app/apps/web # Mount the web app code for live development
     depends_on:
-      - pocketbase
+      - postgres
+    networks:
+      - chatty-network
 
-  pocketbase:
-    build:
-      context: .
-      dockerfile: apps/pb/Dockerfile
-    container_name: pocketbase-server
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./pocketbase_data:/pb/pb_data   # Optional, to mount for live updates
+volumes:
+  postgres_data:
+
+networks:
+  chatty-network:
